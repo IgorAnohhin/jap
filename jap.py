@@ -5,17 +5,25 @@ from node import Node
 from episode import Episode
 
 
-def _init_jobs_and_nodes_with_desp(j_count):
-    nodes = {}
-    jobs = []
+def _get_job_by_id(job_id, jobs):
+    tjobs = [job for job in jobs if job.id == job_id]
+    if len(tjobs) > 0:
+        jobs.remove(tjobs[0])
 
-    j_id = 1
-    while j_id <= j_count:
-        jobs.append(Job(j_id))
-        j_id += 1
+    return tjobs[0] if len(tjobs) > 0 else None
 
-    for inx, job in jobs:
-        job.add_predecessor()
+
+def _init_node(jid, job_data, nodes):
+    nodes_count = len(job_data) - 2
+    for c in range(nodes_count):
+        n_time = int(job_data[c+2])
+        n_id = int(c+1)
+        node = Node(n_id, n_time)
+
+        if jid not in nodes:
+            nodes[jid] = []
+
+        nodes[jid].append(node)
 
 
 def _init_jobs_and_nodes_no_deps(config):
@@ -28,19 +36,25 @@ def _init_jobs_and_nodes_no_deps(config):
         job_data = line.split(' ')
         if len(job_data) > 2:
             job_id = int(job_data[0])
-            job = Job(job_id)
+            job = _get_job_by_id(job_id, jobs)
+            job = Job(job_id) if job is None else job
+
             if '-' not in job_data[1]:
-                print 'dependencies'
+                successors_ids = job_data[1].split(',')
+                for sjob_id in successors_ids:
+                    sjob_id = int(sjob_id)
+                    job.successors.append(sjob_id)
+
+                    pjob = _get_job_by_id(sjob_id, jobs)
+                    pjob = Job(sjob_id) if pjob is None else pjob
+                    pjob.predecessors.append(job_id)
+                    jobs.append(pjob)
+
+                jobs.append(job)
+                _init_node(job_id, job_data, nodes)
             else:
                 jobs.append(job)
-
-            nodes_count = len(job_data) - 2
-            for c in range(nodes_count):
-                if job_id in nodes:
-                    nodes[job_id].append(Node(int(c+1), int(job_data[c+2])))
-                else:
-                    nodes[job_id] = []
-                    nodes[job_id].append(Node(int(c+1), int(job_data[c+2])))
+                _init_node(job_id, job_data, nodes)
 
     return {'jobs': jobs, 'nodes': nodes}
 
