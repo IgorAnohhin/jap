@@ -43,11 +43,10 @@ def _init_jobs_and_nodes_no_deps(config):
                 successors_ids = job_data[1].split(',')
                 for sjob_id in successors_ids:
                     sjob_id = int(sjob_id)
-                    job.successors.append(sjob_id)
-
                     pjob = _get_job_by_id(sjob_id, jobs)
                     pjob = Job(sjob_id) if pjob is None else pjob
-                    pjob.predecessors.append(job_id)
+                    job.successors.append(pjob)
+                    pjob.predecessors.append(job)
                     jobs.append(pjob)
 
                 jobs.append(job)
@@ -59,5 +58,5 @@ def _init_jobs_and_nodes_no_deps(config):
     return {'jobs': jobs, 'nodes': nodes}
 
 data = _init_jobs_and_nodes_no_deps('japinstance1')
-episode = Episode(data['jobs'], data['nodes'], 10)
+episode = Episode(data['jobs'], data['nodes'], 7)
 episode.execute()

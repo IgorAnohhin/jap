@@ -3,7 +3,6 @@ from time import sleep
 
 
 class Episode:
-
     busy_nodes = []
     running_jobs = []
     estimated_jobs = []
@@ -23,26 +22,38 @@ class Episode:
 
         job = self._choose_job(self.jobs)
         while job is not None:
+
+            can_proceed = True
+            if len(job.predecessors) > 0:
+                for pred_job in job.predecessors:
+                    if pred_job not in Episode.estimated_jobs and pred_job not in Episode.running_jobs:
+                        job = pred_job
+                        can_proceed = False
+                        break
+                if not can_proceed:
+                    continue
+
             self.jobs.remove(job)
             node = self._choose_node(job, self.nodes, Episode.busy_nodes)
             if node is None:
                 print "Waiting for free node..."
 
             while node is None:
-                sleep(1)
+                sleep(0.3)
                 node = self._choose_node(job, self.nodes, Episode.busy_nodes)
 
             self._execute(node, job)
 
             job = self._choose_job(self.jobs)
 
-        self.jobs = Episode.estimated_jobs
         self._wait_jobs_done()
+        self.jobs = Episode.estimated_jobs
+        print "Jobs count in episode '%s' => '%s'..." % (Episode.id + 1, len(self.jobs))
         self.overall_completion_times.append({'eid': Episode.id, 'ctime': self.overall_completion_time})
         self.tries -= 1
         if self.tries > 0:
             print "Episode '%s', Overall complition time '%s'..." \
-                  % (Episode.id, self.overall_completion_times[len(self.overall_completion_times)-1]['ctime'])
+                  % (Episode.id, self.overall_completion_times[len(self.overall_completion_times) - 1]['ctime'])
             print "Episode '%s', Nodes time '%s'..." % (Episode.id, self.node_completion_times)
             Episode.id += 1
             self.execute()
@@ -50,9 +61,9 @@ class Episode:
             print "Overall complition times '%s'..." % self.overall_completion_times
             best = self._best_overall_completion_time()
             print "Best overall complition time '%s' in episode '%s'..." \
-                % (best['ctime'], best['eid'])
+                  % (best['ctime'], best['eid'])
             print "Nodes from episode with best complition time => '%s'..." \
-                % self._episode_nodes(best['eid'])
+                  % self._episode_nodes(best['eid'])
 
             exit()
 
@@ -60,17 +71,19 @@ class Episode:
     def _execute(node, job):
         Episode.busy_nodes.append(node)
         Episode.running_jobs.append(job)
+        print "Running jobs count in callback function '%s'..." % len(Episode.running_jobs)
 
         def _callback(bnode, cjob, complition_time):
             Episode.overall_completion_time += complition_time
             Episode._set_node_completion_time(bnode, cjob)
             Episode.estimated_jobs.append(cjob)
+            print "Estimated jobs count in callback functions '%s'..." % len(Episode.estimated_jobs)
             Episode.busy_nodes.remove(bnode)
             Episode.running_jobs.remove(cjob)
 
         node.queue.put(job)
-        node.callback = _callback
         if node.isAlive() is not True:
+            node.callback = _callback
             node.start()
 
     @staticmethod
@@ -84,15 +97,17 @@ class Episode:
 
     @staticmethod
     def _wait_jobs_done():
-        if len(Episode.running_jobs) > 0:
-            print "'%s' Jobs are running, wait all jobs are done..." % len(Episode.running_jobs)
-
+        print "In wait for all jobs done, running jobs count '%s'" % len(Episode.running_jobs)
         while len(Episode.running_jobs) > 0:
-            sleep(1)
+            sleep(0.1)
 
     @staticmethod
-    def _choose_job(jobs):
+    def _choose_job(jobs, job=None):
         jobs.sort(key=lambda j: j.estimate, reverse=True)
+        if job is not None:
+            tjobs = [fj for fj in jobs if fj.id != job.id]
+            return tjobs[0] if len(tjobs) > 0 else None
+
         return jobs[0] if len(jobs) > 0 else None
 
     @staticmethod
