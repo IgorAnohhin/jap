@@ -1,5 +1,6 @@
 __author__ = 'v-iganoh'
 import os
+import sys
 from job import Job
 from node import Node
 from episode import Episode
@@ -26,7 +27,7 @@ def _init_node(jid, job_data, nodes):
         nodes[jid].append(node)
 
 
-def _init_jobs_and_nodes_no_deps(config):
+def _init_jobs_and_nodes(config):
     nodes = {}
     jobs = []
 
@@ -57,6 +58,13 @@ def _init_jobs_and_nodes_no_deps(config):
 
     return {'jobs': jobs, 'nodes': nodes}
 
-data = _init_jobs_and_nodes_no_deps('japinstance1')
-episode = Episode(data['jobs'], data['nodes'], 7)
-episode.execute()
+instance = 1
+if len(sys.argv) > 0:
+    for arg in sys.argv:
+        if 'instance' in arg:
+            arg = arg.split('=')
+            instance = arg[1] if len(arg) > 1 else 1
+
+jinstance_data = _init_jobs_and_nodes('japinstance%s' % instance)
+episode1 = Episode(jinstance_data['jobs'], jinstance_data['nodes'], 5)
+episode1.execute()
