@@ -52,17 +52,17 @@ class Episode:
         self.overall_completion_times.append({'eid': Episode.id, 'ctime': self.overall_completion_time})
         self.tries -= 1
         if self.tries > 0:
-            print "Episode '%s', Overall complition time '%s'..." \
+            print "Episode '%s', Overall completion time '%s'..." \
                   % (Episode.id, self.overall_completion_times[len(self.overall_completion_times) - 1]['ctime'])
             print "Episode '%s', Nodes time '%s'..." % (Episode.id, self.node_completion_times)
             Episode.id += 1
             self.execute()
         else:
-            print "Overall complition times '%s'..." % self.overall_completion_times
+            print "Overall completion times '%s'..." % self.overall_completion_times
             best = self._best_overall_completion_time()
-            print "Best overall complition time '%s' in episode '%s'..." \
+            print "Best overall completion time '%s' in episode '%s'..." \
                   % (best['ctime'], best['eid'])
-            print "Nodes from episode with best complition time => '%s'..." \
+            print "Nodes from episode with best completion time => '%s'..." \
                   % self._episode_nodes(best['eid'])
 
             exit()
@@ -73,8 +73,8 @@ class Episode:
         Episode.running_jobs.append(job)
         print "Running jobs count in callback function '%s'..." % len(Episode.running_jobs)
 
-        def _callback(bnode, cjob, complition_time):
-            Episode.overall_completion_time += complition_time
+        def _callback(bnode, cjob, completion_time):
+            Episode.overall_completion_time += completion_time
             Episode._set_node_completion_time(bnode, cjob)
             Episode.estimated_jobs.append(cjob)
             print "Estimated jobs count in callback functions '%s'..." % len(Episode.estimated_jobs)

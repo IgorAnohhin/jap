@@ -9,7 +9,7 @@ class Job:
         self.successors = []
         self.estimate = 0
         self.current_completion_time = 0
-        self.overall_complition_time = []
+        self.overall_completion_time = []
 
     def add_predecessor(self, predecessor):
         self.predecessors.append(predecessor)

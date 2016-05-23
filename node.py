@@ -26,12 +26,12 @@ class Node(threading.Thread):
     def adjust_estimate(self, job):
         print "Adjust job '%s' estimate..." % job.id
 
-        job.overall_complition_time.append(self.time_required)
+        job.overall_completion_time.append(self.time_required)
         job.current_completion_time = self.time_required
 
-        n = len(job.overall_complition_time)
-        sm = sum(job.overall_complition_time)
+        n = len(job.overall_completion_time)
+        sm = sum(job.overall_completion_time)
         average = sm/n
         job.estimate += job.current_completion_time - average
 
-        print "Job '%s' estimate '%s' in episode '%s'..." % (job.id, job.estimate, len(job.overall_complition_time))
+        print "Job '%s' estimate '%s' in episode '%s'..." % (job.id, job.estimate, len(job.overall_completion_time))
